@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import features
 import patcher
 from dol import Dol
-from regions import REGIONS
+from regions import REGIONS, key_for
 
 
 def find_wit():
@@ -50,9 +50,8 @@ def read_disc_id(fst):
     return header[0:6].decode('ascii', 'replace'), header[7]
 
 
-def run_patch(image_path, log, done, which=('cc', 'gc', 'sd'), ios=None):
-    """Patch `image_path` in place.  `which` names the features; `ios` (an int)
-    also retargets the disc's IOS (needed for SDHC on a real Wii)."""
+def run_patch(image_path, log, done, which=('pad',)):
+    """Patch `image_path` in place.  `which` names the features."""
     try:
         wit = find_wit()
         if wit is None:
@@ -63,7 +62,7 @@ def run_patch(image_path, log, done, which=('cc', 'gc', 'sd'), ios=None):
             raise RuntimeError('nothing selected: tick at least one patch')
         fmt = '--iso' if image_path.lower().endswith('.iso') else '--wbfs'
 
-        with tempfile.TemporaryDirectory(prefix='excite_patch_') as tmp:
+        with tempfile.TemporaryDirectory(prefix='tp_patch_') as tmp:
             fst = os.path.join(tmp, 'fst')
             log('extracting %s...' % os.path.basename(image_path))
             r = subprocess.run([wit, 'extract', image_path, '--dest', fst, '--psel', 'data',
@@ -75,11 +74,11 @@ def run_patch(image_path, log, done, which=('cc', 'gc', 'sd'), ios=None):
             if not got:
                 raise RuntimeError('could not read sys/boot.bin from the extracted disc')
             disc_id, disc_ver = got
-            if disc_id not in REGIONS or REGIONS[disc_id]['version'] != disc_ver:
-                raise RuntimeError('%s v%d is not an Excite Truck release this patcher knows.\n\n'
+            region = key_for(disc_id, disc_ver)
+            if region is None:
+                raise RuntimeError('%s v%d is not an Twilight Princess release this patcher knows.\n\n'
                                    'Supported: %s' % (disc_id, disc_ver, ', '.join(
                                        '%s (%s)' % (k, v['short']) for k, v in REGIONS.items())))
-            region = disc_id
             log('disc: %s (%s)' % (region, REGIONS[region]['label']))
 
             dol_path = find_file(fst, 'main.dol')
@@ -99,8 +98,7 @@ def run_patch(image_path, log, done, which=('cc', 'gc', 'sd'), ios=None):
                     raise RuntimeError('the main.dol does not match the retail %s (%s) -- already modified '
                                        'by something else, or not an unmodified dump. Not patching it.'
                                        % (REGIONS[region]['label'], features.TITLES[name]))
-            want_ios = ios is not None and ios != _disc_ios(wit, image_path)
-            if not todo and not want_ios:
+            if not todo:
                 raise RuntimeError('nothing left to add: the selected patches are already in this disc.')
 
             if todo:
@@ -112,9 +110,6 @@ def run_patch(image_path, log, done, which=('cc', 'gc', 'sd'), ios=None):
             staged = os.path.join(tmp, 'patched.img')
             log('rebuilding...')
             cmd = [wit, 'copy', fst, '--dest', staged, fmt, '--overwrite', '-q']
-            if ios is not None:
-                cmd += ['--ios', str(ios)]
-                log('  setting the disc\'s IOS to %d' % ios)
             r = subprocess.run(cmd, capture_output=True, text=True)
             if r.returncode:
                 raise RuntimeError('rebuild failed:\n' + (r.stderr or r.stdout))
@@ -133,14 +128,3 @@ def run_patch(image_path, log, done, which=('cc', 'gc', 'sd'), ios=None):
         log('ERROR: %s' % e)
         done(False, str(e))
 
-
-def _disc_ios(wit, image_path):
-    """The IOS slot the disc's TMD asks for (None if wit cannot say)."""
-    try:
-        out = subprocess.run([wit, 'dump', image_path], capture_output=True, text=True).stdout
-        for line in out.splitlines():
-            if 'System version:' in line and 'IOS' in line:
-                return int(line.rsplit('IOS', 1)[1].split()[0], 0)
-    except Exception:
-        pass
-    return None

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Drag-and-drop patcher: drop an Excite Truck disc image on the window, done.
+"""Drag-and-drop patcher: drop a Twilight Princess disc image on the window, done.
 
 Extracts the disc, patches its own main.dol for the options you tick, and
 rebuilds the image in the same format.  The rebuilt image replaces the original
@@ -36,7 +36,7 @@ BASE = TkinterDnD.Tk if HAVE_DND else tk.Tk
 class App(BASE):
     def __init__(self):
         super().__init__()
-        self.title('Excite-Patcher')
+        self.title('TP-Patcher')
         self.geometry('620x640')
         self.msgq = queue.Queue()
         self.busy = False
@@ -47,22 +47,12 @@ class App(BASE):
             tk.Label(self, image=self.logo).pack(pady=(10, 0))
         except Exception:                              # the window is fine without its logo
             pass
-        tk.Label(self, text='Excite Truck  -  USA / Europe / Japan',
+        tk.Label(self, text='Twilight Princess  -  USA / Europe / Japan',
                  font=('Helvetica', 12, 'bold')).pack(pady=(4, 6))
 
-        opts = tk.LabelFrame(self, text='Patches')
-        opts.pack(fill='x', padx=10)
-        self.cc = tk.BooleanVar(value=True)
-        tk.Checkbutton(opts, text='Classic Controller', variable=self.cc).pack(anchor='w')
-        self.gc = tk.BooleanVar(value=True)
-        tk.Checkbutton(opts, text='GameCube controller (port 1)', variable=self.gc).pack(anchor='w')
-        self.sd = tk.BooleanVar(value=True)
-        tk.Checkbutton(opts, text='SDHC card support (custom soundtrack from cards over 2 GB)',
-                       variable=self.sd, command=self.sync_ios).pack(anchor='w')
-        self.ios = tk.BooleanVar(value=False)
-        self.ios_cb = tk.Checkbutton(opts, text='    ... and make the disc ask for IOS 58 (SDHC on a real Wii; try without if remotes misbehave)',
-                                     variable=self.ios)
-        self.ios_cb.pack(anchor='w')
+        tk.Label(self, text='Adds Classic Controller and GameCube controller (port 1) support.\n'
+                            'Left stick moves, C-stick aims, Z / R / ZR swing, bash and spin.',
+                 justify='center').pack(padx=10)
 
         hint = ('Drop a .wbfs or .iso here\n\n(or click to choose one)'
                 if HAVE_DND else 'Click to choose a .wbfs or .iso')
@@ -78,9 +68,6 @@ class App(BASE):
         self.log = tk.Text(self, height=10, state='disabled', wrap='word')
         self.log.pack(fill='both', expand=True, padx=10, pady=10)
         self.after(100, self.poll_queue)
-
-    def sync_ios(self):
-        self.ios_cb.configure(state='normal' if self.sd.get() else 'disabled')
 
     def on_drop(self, event):
         paths = self.tk.splitlist(event.data)          # handles {braced paths with spaces}
@@ -125,20 +112,15 @@ class App(BASE):
         if not os.path.isfile(image_path):
             messagebox.showerror('Not a file', '%s is not a file.' % image_path)
             return
-        which = [n for n, v in (('cc', self.cc), ('gc', self.gc), ('sd', self.sd)) if v.get()]
-        if not which:
-            messagebox.showerror('Nothing selected', 'Tick at least one patch.')
-            return
         self.busy = True
         self.drop.configure(state='disabled')
         self.log.configure(state='normal')
         self.log.delete('1.0', 'end')
         self.log.configure(state='disabled')
-        ios = 58 if ('sd' in which and self.ios.get()) else None
         threading.Thread(
             target=disc.run_patch,
             args=(image_path, lambda t: self.msgq.put(('log', t)),
-                  lambda ok, m: self.msgq.put(('done', (ok, m))), which, ios),
+                  lambda ok, m: self.msgq.put(('done', (ok, m))), ['pad']),
             daemon=True,
         ).start()
 

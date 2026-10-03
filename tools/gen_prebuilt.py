@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Regenerate tools/prebuilt/*.json from src/ (needs devkitPPC and the retail DOLs).
 
-    EXCITE_DOLS=/path/with/REXE01.dol,REXP01.dol,REXJ01.dol  python3 tools/gen_prebuilt.py [sd|gc|cc ...]
+    TP_DOLS=<dir with RZDE01.0.dol RZDE01.2.dol RZDP01.0.dol RZDJ01.0.dol>  python3 tools/gen_prebuilt.py [pad ...]
 
-Each retail DOL can instead be given as EXCITE_DOL_<ID>.  The JSON is what the
+Each retail DOL can instead be given as TP_DOL_<region key> (e.g. TP_DOL_RZDE01.2).  The JSON is what the
 patcher ships and reads; end users do not need devkitPPC or any game files here.
 """
 import json
@@ -19,24 +19,23 @@ from regions import REGIONS
 
 
 def dol_for(region):
-    env = os.environ.get('EXCITE_DOL_' + region)
+    env = os.environ.get('TP_DOL_' + region)
     if env:
         return Dol(env)
-    base = os.environ.get('EXCITE_DOLS')
+    base = os.environ.get('TP_DOLS')
     if base:
         p = os.path.join(base, region + '.dol')
         if os.path.exists(p):
             return Dol(p)
-    sys.exit('set EXCITE_DOLS=<dir with %s.dol> or EXCITE_DOL_%s=<path>' % (region, region))
+    sys.exit('set TP_DOLS=<dir with %s.dol> or TP_DOL_%s=<path>' % (region, region))
 
 
 def main(argv):
-    which = argv or ['sd', 'gc', 'cc']
+    which = argv or ['pad']
     os.makedirs(PREBUILT, exist_ok=True)
     for name in which:
         mod = __import__('gen_' + name)
-        if hasattr(mod, 'USA_DOL'):
-            mod.USA_DOL = dol_for('REXE01')
+        mod.REF_DOL = dol_for('RZDE01.2')
         for region in REGIONS:
             f = mod.build(region, dol_for(region))
             path = os.path.join(PREBUILT, '%s_%s.json' % (name, region))

@@ -18,4 +18,5 @@ GEST_BASE = 0x80001900        # the two gesture hooks
 GEST_END = 0x80001B00
 READ_BASE = 0x80001B00        # KPADRead call-site hook
 READ_END = 0x80002C00
+WINDOWS = {'pad': (PROBE_BASE, READ_END)}
 FEED = 0x80002F00             # dev builds only: scripted input block (never in a release)

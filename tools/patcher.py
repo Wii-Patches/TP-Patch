@@ -8,14 +8,14 @@ from dol import Dol
 from ops import apply_static
 from regions import REGIONS
 
-ORDER = ('sd', 'cc', 'gc')
+ORDER = ('pad',)
 
 
 def detect_region(dol):
     """Which release this main.dol is, from its own bytes (None if unknown)."""
     for region in REGIONS:
-        if features.available('sd', region):
-            f = features.load('sd', region)
+        if features.available('pad', region):
+            f = features.load('pad', region)
             if not f.check_pristine(dol) or f.is_applied(dol):
                 return region
     return None
@@ -55,7 +55,7 @@ def patch_file(src, dst, region, which):
 
 if __name__ == '__main__':
     import argparse
-    ap = argparse.ArgumentParser(description='Patch an Excite Truck main.dol')
+    ap = argparse.ArgumentParser(description='Patch an Twilight Princess main.dol')
     ap.add_argument('src')
     ap.add_argument('dst')
     ap.add_argument('--region', choices=sorted(REGIONS), help='default: detect')

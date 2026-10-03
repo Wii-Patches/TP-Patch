@@ -11,11 +11,9 @@ if getattr(sys, 'frozen', False):
 else:
     PREBUILT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'prebuilt')
 
-FEATURES = ('cc', 'gc', 'sd')
+FEATURES = ('pad',)
 TITLES = {
-    'cc': 'Classic Controller',
-    'gc': 'GameCube controller',
-    'sd': 'SDHC card support',
+    'pad': 'Classic Controller and GameCube controller',
 }
 
 

@@ -17,16 +17,11 @@ from regions import REGIONS
 ROOT = os.path.join(HERE, '..')
 
 CREDIT = {
-    'cc': 'Vague Rant and quatric',
-    'gc': 'quatric',
-    'sd': 'Bero and quatric',
+    'pad': 'quatric and Vague Rant',
 }
 BLURB = {
-    'cc': ['Play with a Classic Controller: left stick steers, buttons mapped as Wii Remote held sideways.',
-           'Needs a Wii Remote with a Classic Controller attached.'],
-    'gc': ['Play with a GameCube controller in port 1 (a Wii Remote must still be connected).'],
-    'sd': ['Lets the custom-soundtrack feature read SDHC cards (over 2 GB).',
-           'On a real Wii the game must also run under an IOS that supports SDHC (e.g. IOS 58).'],
+    'pad': ['Play with a Classic Controller or a GameCube controller (port 1) instead of Wii Remote + Nunchuk.',
+            'Left stick moves, C-stick aims the pointer, Z/R/ZR swing, bash and spin.'],
 }
 COMBINED_WARNING = [
     '*These codes keep a few helper routines and variables in low memory at 0x80001820-0x80003000.',
@@ -52,9 +47,9 @@ def gecko_ini(region):
 
 def riivolution_xml(region):
     r = REGIONS[region]
-    out = ['<!-- %s: patches by quatric (Classic Controller codes by Vague Rant, SDHC fix after Bero) -->' % r['label'],
+    out = ['<!-- %s: controller patches by quatric, building on the Classic Controller work of Vague Rant -->' % r['label'],
            '<wiidisc version="1" root="/">',
-           '  <id game="%s" version="%d" />' % (region, r['version']),
+           '  <id game="%s" version="%d" />' % (r['id'], r['version']),
            '  <options>',
            '    <section name="%s">' % r['label']]
     for name in features.FEATURES:

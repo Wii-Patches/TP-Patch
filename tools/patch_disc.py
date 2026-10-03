@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Command-line twin of the GUI: patch a .wbfs/.iso in place.
 
-    python3 tools/patch_disc.py "Excite Truck (USA).wbfs" --cc --gc --sd --ios 58
+    python3 tools/patch_disc.py "Twilight Princess (USA).wbfs"
 """
 import argparse
 import os
@@ -17,12 +17,10 @@ def main():
     ap.add_argument('image')
     for n in features.FEATURES:
         ap.add_argument('--' + n, action='store_true', help=features.TITLES[n])
-    ap.add_argument('--ios', type=int, metavar='SLOT',
-                    help='also make the disc ask for this IOS (58 for SDHC on a real Wii)')
     a = ap.parse_args()
     which = [n for n in features.FEATURES if getattr(a, n)] or list(features.FEATURES)
     ok = []
-    disc.run_patch(a.image, print, lambda good, msg: ok.append(good), which, a.ios)
+    disc.run_patch(a.image, print, lambda good, msg: ok.append(good), which)
     sys.exit(0 if ok and ok[0] else 1)
 
 

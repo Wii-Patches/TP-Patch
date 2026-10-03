@@ -12,8 +12,6 @@ REGIONS = {
                      dol_size=4414720),
     'RZDJ01.0': dict(id='RZDJ01', version=0, label='Zelda no Densetsu: Twilight Princess (Japan)', short='Japan',
                      dol_size=4404096),
-    'RZDK01.0': dict(id='RZDK01', version=0, label='Twilight Princess (Korea)', short='Korea',
-                     dol_size=5708160),
 }
 
 

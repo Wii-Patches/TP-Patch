@@ -31,6 +31,27 @@ def check(cond, msg):
         print('  FAIL', msg)
 
 
+def parse_gecko(text):
+    """Minimal reader for the C2 / 04 / 06 codes build.py writes: [(kind, addr, [words])]."""
+    out, lines = [], [l.split() for l in text.splitlines() if l.strip()]
+    i = 0
+    while i < len(lines):
+        head, arg = lines[i]
+        kind, addr = head[:2], 0x80000000 | (int(head[2:], 16) & 0x01FFFFFF)
+        n = int(arg, 16)
+        if kind == 'C2':
+            body = [int(w, 16) for ln in lines[i + 1:i + 1 + n] for w in ln]
+            i += 1 + n
+        elif kind == '06':
+            i += 1 + (n + 7) // 8
+            body = []
+        else:
+            body = [n]
+            i += 1
+        out.append((kind, addr, body))
+    return out
+
+
 def main():
     for region in REGIONS:
         taken = []
@@ -46,7 +67,7 @@ def main():
                     check(lo <= op.tramp and op.tramp + n <= hi,
                           '%s/%s: trampoline 0x%08X..0x%08X outside its window' % (name, region, op.tramp, op.tramp + n))
                     check(op.payload[-1] == 0, '%s/%s: hook 0x%08X has no branch-back slot' % (name, region, op.site))
-                    check(all(op.payload[:-1]) or name == 'cc', '%s/%s: hook 0x%08X contains a zero word' % (name, region, op.site))
+                    check(all(op.payload[:-1]) or name == 'pad', '%s/%s: hook 0x%08X contains a zero word' % (name, region, op.site))
                     for a, b in taken:
                         check(op.tramp + n <= a or b <= op.tramp, '%s/%s: trampolines overlap at 0x%08X' % (name, region, op.tramp))
                     taken.append((op.tramp, op.tramp + n))
@@ -59,9 +80,8 @@ def main():
                 elif isinstance(op, Patch):
                     check(len(op.new) == len(op.orig), '%s/%s: patch size mismatch at 0x%08X' % (name, region, op.addr))
             # gecko -> ops round trip
-            import gen_cc
             text = '\n'.join(f.gecko_lines())
-            for kind, addr, body in gen_cc.parse('\n'.join(l for l in text.splitlines() if not l.startswith('*'))):
+            for kind, addr, body in parse_gecko('\n'.join(l for l in text.splitlines() if not l.startswith('*'))):
                 if kind == 'C2':
                     hooks = [o for o in f.ops if isinstance(o, Hook) and o.site == addr]
                     check(len(hooks) == 1 and body[:len(hooks[0].payload) - 1] == hooks[0].payload[:-1],

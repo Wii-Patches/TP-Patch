@@ -88,7 +88,7 @@ class Gdb:
         while n:
             k = min(n, 0x400)
             r = self.txn('m%x,%x' % (addr, k))
-            if r.startswith('E'):
+            if len(r) == 3 and r[0] == 'E':
                 raise IOError('read 0x%08X failed: %s' % (addr, r))
             out += bytes.fromhex(r)
             addr += k

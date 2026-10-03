@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Check the patch data against real, retail main.dol files.
 
-    EXCITE_DOLS=<dir with REXE01.dol REXP01.dol REXJ01.dol> python3 tools/verify.py
+    TP_DOLS=<dir with RZDE01.0.dol RZDE01.2.dol RZDP01.0.dol RZDJ01.0.dol> python3 tools/verify.py
 
-For every region and every combination of the three patches:
+For every region and every combination of the patches:
   * every site holds the retail bytes before patching
   * after patching, every hook site is a branch into the injected section whose
     trampoline runs back to site+4, and every in-place patch carries its new bytes
@@ -34,10 +34,10 @@ def check(cond, msg):
 
 
 def retail(region):
-    base = os.environ.get('EXCITE_DOLS')
+    base = os.environ.get('TP_DOLS')
     p = os.path.join(base or '.', region + '.dol')
     if not os.path.exists(p):
-        sys.exit('set EXCITE_DOLS to a directory holding %s.dol' % region)
+        sys.exit('set TP_DOLS to a directory holding %s.dol' % region)
     return p
 
 
@@ -52,7 +52,7 @@ def main():
             check(not f.check_pristine(d0), '%s: every site holds the retail bytes' % name)
 
         everything = itertools.chain.from_iterable(
-            itertools.combinations(features.FEATURES, n) for n in (1, 2, 3))
+            itertools.combinations(features.FEATURES, n) for n in range(1, len(features.FEATURES) + 1))
         for combo in everything:
             d = Dol(path)
             patcher.patch(d, region, list(combo))
