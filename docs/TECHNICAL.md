@@ -64,5 +64,9 @@ reset, sword swing (Z), shield (R) and the spin-attack charge pose (Z held). Eur
 with the patched DOL and driven past the title screen with the GameCube pad. USA v0 only has its hook sites
 found by signature search and checked by `tools/verify.py` against the retail DOL (not yet played).
 
+The Classic Controller path was checked on USA Rev 2 with Dolphin's emulated Classic Controller: A+B passed
+the title screen and the left stick moved the name-entry cursor. Combat gestures on the Classic Controller and
+GameCube-only play (no Wii Remote) have not been tested.
+
 Handy addresses on USA Rev 2 for the dev rig: save status struct `0x80479F30` (maxLife, life, ...), the
 equipment bytes start at `0x80479F43` (clothes), sword `0x80479F44`, shield `0x80479F45`.
