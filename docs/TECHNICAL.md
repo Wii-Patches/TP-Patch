@@ -56,3 +56,12 @@ python3 tools/verify.py         # against retail DOLs
 ## Dev rig
 
 `dev/` drives Dolphin through its GDB stub with a scripted input block, for checking behaviour in-game.
+
+## Verification
+
+USA Rev 2 was played through in Dolphin with a scripted GameCube pad: menus, movement, targeting, camera
+reset, sword swing (Z), shield (R) and the spin-attack charge pose (Z held). USA v0, Europe and Japan have
+their hook sites found by signature search and checked by `tools/verify.py` against the retail DOLs.
+
+Handy addresses on USA Rev 2 for the dev rig: save status struct `0x80479F30` (maxLife, life, ...), the
+equipment bytes start at `0x80479F43` (clothes), sword `0x80479F44`, shield `0x80479F45`.
