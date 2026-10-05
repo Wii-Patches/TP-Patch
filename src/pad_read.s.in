@@ -166,6 +166,8 @@
     stfs    f13, 0x64(r24)
 28: li      r5, 1
     stw     r5, 0x5c(r24)               # it is a Nunchuk now
+    li      r0, 0
+    stb     r0, 0x85(r24)               # the game drops samples with this byte set (real remote, no Nunchuk)
     stw     r6, 0(r24)
     subf    r3, r30, r24
     li      r4, 0x88
